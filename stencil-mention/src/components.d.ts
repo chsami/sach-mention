@@ -20,18 +20,19 @@ export namespace Components {
     * Set the amount of time, in milliseconds, to wait to trigger the `onChange` event after each keystroke.
     */
     'debounce': number;
+    'dictionary': Array<{ key: string, value: any }>;
     /**
     * The mode determines which platform styles to use.
     */
     'mode': string;
     'searchTermLength': number;
-    'values': Array<string>;
   }
   interface MyComponentAttributes extends StencilHTMLAttributes {
     /**
     * Set the amount of time, in milliseconds, to wait to trigger the `onChange` event after each keystroke.
     */
     'debounce'?: number;
+    'dictionary'?: Array<{ key: string, value: any }>;
     /**
     * The mode determines which platform styles to use.
     */
@@ -43,7 +44,6 @@ export namespace Components {
     'onOnChange'?: (event: CustomEvent<string>) => void;
     'onOnFocus'?: (event: CustomEvent<void>) => void;
     'searchTermLength'?: number;
-    'values'?: Array<string>;
   }
 }
 

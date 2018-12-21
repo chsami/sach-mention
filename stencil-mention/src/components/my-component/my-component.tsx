@@ -15,7 +15,14 @@ export class MyComponent {
     */
     @Prop() mode!: string;
 
-    @Prop() values: Array<string> = ['andy', 'katerina'];
+    @Prop() dictionary: Array<{ key: string, value: any }> = [{
+        key: '1',
+        value: 'Andy',
+    },
+    {
+        key: '2',
+        value: 'Katarina',
+    }]
 
     /**
      * Set the amount of time, in milliseconds, to wait to trigger the `onChange` event after each keystroke.
@@ -42,11 +49,10 @@ export class MyComponent {
 
     @State() hideList: boolean = true;
     @State() inputValue: string;
-    @State() valuesToShow: Array<string> = [];
+    @State() valuesToShow: Array<{ key: string, value: any }> = [];
 
 
     private onKeyDown = (event: KeyboardEvent) => {
-        console.log(event);
         if (event.key === '@') {
             this.hideList = false;
         }
@@ -61,19 +67,20 @@ export class MyComponent {
             } else if (this.inputValue.length > this.searchTermLength) {
                 this.hideList = false;
                 this.valuesToShow = searchInHtmlList(
-                    this.values,
+                    this.dictionary,
                     this.inputValue.split('@').pop());
             }
         }
         this.inputEvent.emit(ev as KeyboardEvent);
     }
 
-    private addValueToInput(value: any) {
+    private addValueToInput(slot: { key: string, value: any } ) {
         let textbox: HTMLElement = this.element.shadowRoot.getElementById('mention-textbox');
         if (textbox.innerHTML.indexOf('@') < 0) return;
 
         textbox.innerHTML = textbox.innerHTML.substring(0, textbox.innerHTML.indexOf('@'));
-        textbox.innerHTML += `<span class="mention" contenteditable="false">${value}</span>`;
+
+        textbox.innerHTML += `<span id=${slot.key} class="mention" contenteditable="false">${slot.value}</span>`;
         textbox.innerHTML += `&nbsp;`;
         window.getSelection().removeAllRanges();
         var range = document.createRange();
@@ -82,16 +89,22 @@ export class MyComponent {
         if (textbox.innerHTML.indexOf('@') < 0) {
             this.hideList = true;
         }
+        this.element.shadowRoot.querySelectorAll('.mention').forEach((element: HTMLElement) => {
+
+            element.onclick = function () {
+                alert(element.getAttribute('id'));
+            }
+        });
     }
 
     private onPaste(event) {
         event.preventDefault();
 
-         // get text representation of clipboard
-         var text = event.clipboardData.getData("text/plain");
+        // get text representation of clipboard
+        var text = event.clipboardData.getData("text/plain");
 
-         // insert text manually
-         document.execCommand("insertHTML", false, text);
+        // insert text manually
+        document.execCommand("insertHTML", false, text);
     }
 
 
@@ -99,22 +112,34 @@ export class MyComponent {
         this.debounceChanged();
     }
 
+    renderInput = () => {
+        return <div
+            id="mention-textbox"
+            contenteditable="true"
+            onInput={this.onInput}
+            onKeyDown={this.onKeyDown}
+            onPaste={this.onPaste}>
+        </div>
+    }
+
+    renderValues = () => {
+        return <ul id="mention-list" hidden={this.hideList}>
+            {this.valuesToShow.map((slot: {key: string, value: any}) =>
+                <li onClick={() => this.addValueToInput(slot)}>{slot.value}</li>
+            )}
+        </ul>;
+    }
+
+    divStyle = {
+        width: '250px'
+    }
+
 
     render() {
         return ([
-            <div>
-                <div
-                    id="mention-textbox"
-                    contenteditable="true"
-                    onInput={this.onInput}
-                    onKeyDown={this.onKeyDown}
-                    onPaste={this.onPaste}>
-                </div>
-                <ul id="mention-list" hidden={this.hideList}>
-                    {this.valuesToShow.map((value: string) =>
-                        <li onClick={() => this.addValueToInput(value)}>{value}</li>
-                    )}
-                </ul>
+            <div style={this.divStyle}>
+                <this.renderInput />
+                <this.renderValues />
             </div>
         ]);
     }

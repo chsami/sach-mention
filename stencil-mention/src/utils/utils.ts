@@ -24,11 +24,11 @@ export function debounceEvent(event: EventEmitter, wait: number): EventEmitter {
     } as EventEmitter;
 }
 
-export function searchInHtmlList(values: Array<string>, search: string): Array<string> {
-    let list: Array<string> = [];
-    values.forEach((value: string) => {
-        if (value.includes(search)) {
-            list.push(value);
+export function searchInHtmlList(dictionary: Array<{ key: string, value: any }>, search: string): Array<{ key: string, value: any }>  {
+    let list: Array<{ key: string, value: any }> = [];
+    dictionary.forEach((slot: {key: string, value: any}) => {
+        if (slot.value.includes(search)) {
+            list.push(slot);
         }
     });
     return list
