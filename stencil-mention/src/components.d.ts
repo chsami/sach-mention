@@ -16,6 +16,7 @@ import {
 export namespace Components {
 
   interface MyComponent {
+    'custmTemplate': boolean;
     /**
     * Set the amount of time, in milliseconds, to wait to trigger the `onChange` event after each keystroke.
     */
@@ -28,6 +29,7 @@ export namespace Components {
     'searchTermLength': number;
   }
   interface MyComponentAttributes extends StencilHTMLAttributes {
+    'custmTemplate'?: boolean;
     /**
     * Set the amount of time, in milliseconds, to wait to trigger the `onChange` event after each keystroke.
     */

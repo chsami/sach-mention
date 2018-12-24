@@ -31,6 +31,8 @@ export class MyComponent {
 
     @Prop() searchTermLength: number = 1;
 
+    @Prop() custmTemplate: boolean = false;
+
 
     @Event() onFocus: EventEmitter<void>
 
@@ -74,7 +76,7 @@ export class MyComponent {
         this.inputEvent.emit(ev as KeyboardEvent);
     }
 
-    private addValueToInput(slot: { key: string, value: any } ) {
+    private addValueToInput(slot: { key: string, value: any }) {
         let textbox: HTMLElement = this.element.shadowRoot.getElementById('mention-textbox');
         if (textbox.innerHTML.indexOf('@') < 0) return;
 
@@ -122,12 +124,20 @@ export class MyComponent {
         </div>
     }
 
-    renderValues = () => {
-        return <ul id="mention-list" hidden={this.hideList}>
-            {this.valuesToShow.map((slot: {key: string, value: any}) =>
-                <li onClick={() => this.addValueToInput(slot)}>{slot.value}</li>
-            )}
-        </ul>;
+    renderListMenu = () => {
+        return this.custmTemplate
+            ? 
+            <div hidden={!this.hideList}>
+                <slot name="list-menu" />
+            </div>
+            :
+            <div hidden={this.hideList}>
+                <ul id="mention-list">
+                    {this.valuesToShow.map((slot: { key: string, value: any }) =>
+                        <li onClick={() => this.addValueToInput(slot)}>{slot.value}</li>
+                    )}
+                </ul>
+            </div>
     }
 
     divStyle = {
@@ -139,7 +149,7 @@ export class MyComponent {
         return ([
             <div style={this.divStyle}>
                 <this.renderInput />
-                <this.renderValues />
+                <this.renderListMenu />
             </div>
         ]);
     }
