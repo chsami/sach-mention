@@ -21,7 +21,7 @@ export namespace Components {
     * Set the amount of time, in milliseconds, to wait to trigger the `onChange` event after each keystroke.
     */
     'debounce': number;
-    'dictionary': Array<{ key: string, value: any }>;
+    'dictionary': Array<{ key: string; value: any }>;
     /**
     * The mode determines which platform styles to use.
     */
@@ -34,7 +34,7 @@ export namespace Components {
     * Set the amount of time, in milliseconds, to wait to trigger the `onChange` event after each keystroke.
     */
     'debounce'?: number;
-    'dictionary'?: Array<{ key: string, value: any }>;
+    'dictionary'?: Array<{ key: string; value: any }>;
     /**
     * The mode determines which platform styles to use.
     */

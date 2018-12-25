@@ -1,156 +1,176 @@
-import { Component, Prop, EventEmitter, Event, Watch, State, Element } from '@stencil/core';
+import {
+  Component,
+  Prop,
+  EventEmitter,
+  Event,
+  Watch,
+  State,
+  Element
+} from '@stencil/core';
 import { debounceEvent, searchInHtmlList } from '../../utils/utils';
 
 @Component({
-    tag: 'my-component',
-    styleUrls: { mycomp: 'my-component.scss', cool: 'cool-component.scss' },
-    shadow: true
+  tag: 'my-component',
+  styleUrls: { mycomp: 'my-component.scss', cool: 'cool-component.scss' },
+  shadow: true
 })
 export class MyComponent {
+  @Element() element: HTMLElement;
 
-    @Element() element: HTMLElement;
+  /**
+   * The mode determines which platform styles to use.
+   */
+  @Prop() mode!: string;
 
-    /**
-       * The mode determines which platform styles to use.
-    */
-    @Prop() mode!: string;
-
-    @Prop() dictionary: Array<{ key: string, value: any }> = [{
-        key: '1',
-        value: 'Andy',
+  @Prop() dictionary: Array<{ key: string; value: any }> = [
+    {
+      key: '1',
+      value: 'Andy'
     },
     {
-        key: '2',
-        value: 'Katarina',
-    }]
+      key: '2',
+      value: 'Katarina'
+    }
+  ];
 
-    /**
-     * Set the amount of time, in milliseconds, to wait to trigger the `onChange` event after each keystroke.
+  /**
+   * Set the amount of time, in milliseconds, to wait to trigger the `onChange` event after each keystroke.
    */
-    @Prop() debounce = 0;
+  @Prop() debounce = 0;
 
-    @Prop() searchTermLength: number = 1;
+  @Prop() searchTermLength: number = 1;
 
-    @Prop() custmTemplate: boolean = false;
+  @Prop() custmTemplate: boolean = false;
 
+  @Event() onFocus: EventEmitter<void>;
 
-    @Event() onFocus: EventEmitter<void>
+  @Event() onChange: EventEmitter<string>;
 
-    @Event() onChange: EventEmitter<string>
+  /**
+   * Emitted when a keyboard input ocurred.
+   */
+  @Event() inputEvent!: EventEmitter<KeyboardEvent>;
 
-    /**
-        * Emitted when a keyboard input ocurred.
-    */
-    @Event() inputEvent!: EventEmitter<KeyboardEvent>;
+  @Watch('debounce')
+  protected debounceChanged(): void {
+    this.onChange = debounceEvent(this.onChange, this.debounce);
+  }
 
+  @State() hideList: boolean = true;
+  @State() inputValue: string;
+  @State() valuesToShow: Array<{ key: string; value: any }> = [];
 
-    @Watch('debounce')
-    protected debounceChanged() {
-        this.onChange = debounceEvent(this.onChange, this.debounce);
+  private onKeyDown = (event: KeyboardEvent) => {
+    if (event.key === '@') {
+      this.hideList = false;
+    }
+  };
+
+  private onInput = (ev: Event) => {
+    const input: HTMLInputElement = ev.target as HTMLInputElement | null;
+    if (input) {
+      this.inputValue = input.innerText || '';
+      if (
+        !this.inputValue.includes('@') ||
+        this.inputValue.length <= this.searchTermLength
+      ) {
+        this.hideList = true;
+      } else if (this.inputValue.length > this.searchTermLength) {
+        this.hideList = false;
+        this.valuesToShow = searchInHtmlList(
+          this.dictionary,
+          this.inputValue.split('@').pop()
+        );
+      }
+    }
+    this.inputEvent.emit(ev as KeyboardEvent);
+  };
+
+  private addValueToInput(slot: { key: string; value: any }): void {
+    let textbox: HTMLElement = this.element.shadowRoot.getElementById(
+      'mention-textbox'
+    );
+    if (textbox.innerHTML.indexOf('@') < 0) {
+        return;
     }
 
-    @State() hideList: boolean = true;
-    @State() inputValue: string;
-    @State() valuesToShow: Array<{ key: string, value: any }> = [];
+    textbox.innerHTML = textbox.innerHTML.substring(
+      0,
+      textbox.innerHTML.indexOf('@')
+    );
 
-
-    private onKeyDown = (event: KeyboardEvent) => {
-        if (event.key === '@') {
-            this.hideList = false;
-        }
+    textbox.innerHTML += `<span id=${
+      slot.key
+    } class="mention" contenteditable="false">${slot.value}</span>`;
+    textbox.innerHTML += `&nbsp;`;
+    window.getSelection().removeAllRanges();
+    const range: Range = document.createRange();
+    range.setStart(textbox, textbox.childNodes.length);
+    window.getSelection().addRange(range);
+    if (textbox.innerHTML.indexOf('@') < 0) {
+      this.hideList = true;
     }
+    this.element.shadowRoot
+      .querySelectorAll('.mention')
+      .forEach((element: HTMLElement) => {
+        element.onclick = function() {
+          alert(element.getAttribute('id'));
+        };
+      });
+  }
 
-    private onInput = (ev: Event) => {
-        const input = ev.target as HTMLInputElement | null;
-        if (input) {
-            this.inputValue = input.innerText || '';
-            if (!this.inputValue.includes('@') || this.inputValue.length <= this.searchTermLength) {
-                this.hideList = true;
-            } else if (this.inputValue.length > this.searchTermLength) {
-                this.hideList = false;
-                this.valuesToShow = searchInHtmlList(
-                    this.dictionary,
-                    this.inputValue.split('@').pop());
-            }
-        }
-        this.inputEvent.emit(ev as KeyboardEvent);
-    }
+  private onPaste(event: any): void {
+    event.preventDefault();
 
-    private addValueToInput(slot: { key: string, value: any }) {
-        let textbox: HTMLElement = this.element.shadowRoot.getElementById('mention-textbox');
-        if (textbox.innerHTML.indexOf('@') < 0) return;
+    // get text representation of clipboard
+    const text: any = event.clipboardData.getData('text/plain');
 
-        textbox.innerHTML = textbox.innerHTML.substring(0, textbox.innerHTML.indexOf('@'));
+    // insert text manually
+    document.execCommand('insertHTML', false, text);
+  }
 
-        textbox.innerHTML += `<span id=${slot.key} class="mention" contenteditable="false">${slot.value}</span>`;
-        textbox.innerHTML += `&nbsp;`;
-        window.getSelection().removeAllRanges();
-        var range = document.createRange();
-        range.setStart(textbox, textbox.childNodes.length);
-        window.getSelection().addRange(range);
-        if (textbox.innerHTML.indexOf('@') < 0) {
-            this.hideList = true;
-        }
-        this.element.shadowRoot.querySelectorAll('.mention').forEach((element: HTMLElement) => {
+  componentDidLoad(): void {
+    this.debounceChanged();
+  }
 
-            element.onclick = function () {
-                alert(element.getAttribute('id'));
-            }
-        });
-    }
+  renderInput = () => {
+    return (
+      <div
+        id='mention-textbox'
+        contenteditable='true'
+        onInput={this.onInput}
+        onKeyDown={this.onKeyDown}
+        onPaste={this.onPaste}
+      />
+    );
+  };
 
-    private onPaste(event) {
-        event.preventDefault();
+  renderListMenu = () => {
+    return this.custmTemplate ? (
+      <div hidden={!this.hideList}>
+        <slot name='list-menu' />
+      </div>
+    ) : (
+      <div hidden={this.hideList}>
+        <ul id='mention-list'>
+          {this.valuesToShow.map((slot: { key: string; value: any }) => (
+            <li onClick={() => this.addValueToInput(slot)}>{slot.value}</li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
 
-        // get text representation of clipboard
-        var text = event.clipboardData.getData("text/plain");
+  divStyle = {
+    width: '250px'
+  };
 
-        // insert text manually
-        document.execCommand("insertHTML", false, text);
-    }
-
-
-    componentDidLoad() {
-        this.debounceChanged();
-    }
-
-    renderInput = () => {
-        return <div
-            id="mention-textbox"
-            contenteditable="true"
-            onInput={this.onInput}
-            onKeyDown={this.onKeyDown}
-            onPaste={this.onPaste}>
-        </div>
-    }
-
-    renderListMenu = () => {
-        return this.custmTemplate
-            ? 
-            <div hidden={!this.hideList}>
-                <slot name="list-menu" />
-            </div>
-            :
-            <div hidden={this.hideList}>
-                <ul id="mention-list">
-                    {this.valuesToShow.map((slot: { key: string, value: any }) =>
-                        <li onClick={() => this.addValueToInput(slot)}>{slot.value}</li>
-                    )}
-                </ul>
-            </div>
-    }
-
-    divStyle = {
-        width: '250px'
-    }
-
-
-    render() {
-        return ([
-            <div style={this.divStyle}>
-                <this.renderInput />
-                <this.renderListMenu />
-            </div>
-        ]);
-    }
+  render(): any {
+    return (
+      <div style={this.divStyle}>
+        <this.renderInput />
+        <this.renderListMenu />
+      </div>
+    );
+  }
 }
