@@ -64,7 +64,7 @@ export class MyComponent {
     if (event.key === '@') {
       this.hideList = false;
     }
-  };
+  }
 
   private onInput = (ev: Event) => {
     const input: HTMLInputElement = ev.target as HTMLInputElement | null;
