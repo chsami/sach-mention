@@ -49,7 +49,7 @@ export class MyComponent {
 
     @Prop() searchTermLength: number = 1;
 
-    @Prop() custmTemplate: boolean = false;
+    @Prop() customTemplate: boolean = false;
 
     @Event() onFocus: EventEmitter<void>;
 
@@ -89,7 +89,7 @@ export class MyComponent {
             }
         }
         this.inputEvent.emit(ev as KeyboardEvent);
-    };
+    }
 
     private addValueToInput(slot: { key: string; value: any }): void {
         const textbox: HTMLElement = this.element.shadowRoot.getElementById(
@@ -118,7 +118,7 @@ export class MyComponent {
         this.element.shadowRoot
             .querySelectorAll('.mention')
             .forEach((element: HTMLElement) => {
-                element.onclick = function () {
+                element.onclick = function (): any {
                     alert(element.getAttribute('id'));
                 };
             });
@@ -148,10 +148,10 @@ export class MyComponent {
                 onPaste={this.onPaste}
             />
         );
-    };
+    }
 
     renderListMenu = () => {
-        return this.custmTemplate ? (
+        return this.customTemplate ? (
             <div hidden={!this.hideList}>
                 <slot name='list-menu' />
             </div>
