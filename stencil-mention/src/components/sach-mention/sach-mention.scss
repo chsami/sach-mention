@@ -1,0 +1,27 @@
+:host {
+    color: blue;
+    .mention {
+        color: red;
+        cursor: pointer;
+    }
+    #mention-list {
+        li {
+            list-style: none;
+            width: 100%;
+            cursor: pointer;
+            color: black;
+            &:hover {
+                background-color: #0081c2;
+                font-weight: bold;
+            }
+        }
+        position: absolute;
+        background-color: white;
+        padding-left: 0px;
+        display: inline-block;
+        width: 250px;
+    }
+    #mention-textbox {
+        border: 1px solid grey;
+    }
+}

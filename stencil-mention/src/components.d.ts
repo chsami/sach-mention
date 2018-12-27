@@ -15,30 +15,30 @@ import {
 
 export namespace Components {
 
-  interface MyComponent {
-    'custmTemplate': boolean;
+  interface SachMention {
+    'customTemplate': boolean;
     /**
     * Set the amount of time, in milliseconds, to wait to trigger the `onChange` event after each keystroke.
     */
     'debounce': number;
-    'dictionary': Array<{ key: string; value: any }>;
+    'dictionary': Array<{ key: string; value: string }>;
     /**
-    * The mode determines which platform styles to use.
+    * if true ignores casing when matching strings
     */
-    'mode': string;
+    'ignoreCase': boolean;
     'searchTermLength': number;
   }
-  interface MyComponentAttributes extends StencilHTMLAttributes {
-    'custmTemplate'?: boolean;
+  interface SachMentionAttributes extends StencilHTMLAttributes {
+    'customTemplate'?: boolean;
     /**
     * Set the amount of time, in milliseconds, to wait to trigger the `onChange` event after each keystroke.
     */
     'debounce'?: number;
-    'dictionary'?: Array<{ key: string; value: any }>;
+    'dictionary'?: Array<{ key: string; value: string }>;
     /**
-    * The mode determines which platform styles to use.
+    * if true ignores casing when matching strings
     */
-    'mode'?: string;
+    'ignoreCase'?: boolean;
     /**
     * Emitted when a keyboard input ocurred.
     */
@@ -51,26 +51,26 @@ export namespace Components {
 
 declare global {
   interface StencilElementInterfaces {
-    'MyComponent': Components.MyComponent;
+    'SachMention': Components.SachMention;
   }
 
   interface StencilIntrinsicElements {
-    'my-component': Components.MyComponentAttributes;
+    'sach-mention': Components.SachMentionAttributes;
   }
 
 
-  interface HTMLMyComponentElement extends Components.MyComponent, HTMLStencilElement {}
-  var HTMLMyComponentElement: {
-    prototype: HTMLMyComponentElement;
-    new (): HTMLMyComponentElement;
+  interface HTMLSachMentionElement extends Components.SachMention, HTMLStencilElement {}
+  var HTMLSachMentionElement: {
+    prototype: HTMLSachMentionElement;
+    new (): HTMLSachMentionElement;
   };
 
   interface HTMLElementTagNameMap {
-    'my-component': HTMLMyComponentElement
+    'sach-mention': HTMLSachMentionElement
   }
 
   interface ElementTagNameMap {
-    'my-component': HTMLMyComponentElement;
+    'sach-mention': HTMLSachMentionElement;
   }
 
 

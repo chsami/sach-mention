@@ -1,4 +1,4 @@
-import { EventEmitter } from "@stencil/core";
+import { EventEmitter } from '@stencil/core';
 
 export function format(first: string, middle: string, last: string): string {
     return (
@@ -8,7 +8,7 @@ export function format(first: string, middle: string, last: string): string {
     );
 }
 
-export function debounce(func: (...args: any[]) => void, wait = 0) {
+export function debounce(func: (...args: any[]) => void, wait: number = 0): any {
     let timer: any;
     return (...args: any[]): any => {
         clearTimeout(timer);
@@ -24,12 +24,21 @@ export function debounceEvent(event: EventEmitter, wait: number): EventEmitter {
     } as EventEmitter;
 }
 
-export function searchInHtmlList(dictionary: Array<{ key: string, value: any }>, search: string): Array<{ key: string, value: any }>  {
-    let list: Array<{ key: string, value: any }> = [];
-    dictionary.forEach((slot: {key: string, value: any}) => {
-        if (slot.value.includes(search)) {
-            list.push(slot);
+export function searchInHtmlList(
+    dictionary: Array<{ key: string, value: string }>,
+    search: string,
+    ignoreCase: boolean): Array<{ key: string, value: string }> {
+    const list: Array<{ key: string, value: any }> = [];
+    dictionary.forEach((slot: { key: string, value: string }) => {
+        if (ignoreCase) {
+            if (slot.value.toLowerCase().includes(search.toLowerCase())) {
+                list.push(slot);
+            }
+        } else {
+            if (slot.value.includes(search)) {
+                list.push(slot);
+            }
         }
     });
-    return list
+    return list;
 }

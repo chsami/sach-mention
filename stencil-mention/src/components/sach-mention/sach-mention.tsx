@@ -10,15 +10,15 @@ import {
 import { debounceEvent, searchInHtmlList } from '../../utils/utils';
 
 @Component({
-    tag: 'my-component',
-    styleUrls: { mycomp: 'my-component.scss', cool: 'cool-component.scss' },
+    tag: 'sach-mention',
+    styleUrls: ['sach-mention.scss'],
     shadow: true
 })
-export class MyComponent {
+export class SachMention {
 
     @State() hideList: boolean = true;
     @State() inputValue: string;
-    @State() valuesToShow: Array<{ key: string; value: any }> = [];
+    @State() valuesToShow: Array<{ key: string; value: string }> = [];
 
     divStyle: any = {
         width: '250px'
@@ -26,12 +26,7 @@ export class MyComponent {
 
     @Element() element: HTMLElement;
 
-    /**
-     * The mode determines which platform styles to use.
-     */
-    @Prop() mode!: string;
-
-    @Prop() dictionary: Array<{ key: string; value: any }> = [
+    @Prop() dictionary: Array<{ key: string; value: string }> = [
         {
             key: '1',
             value: 'Andy'
@@ -50,6 +45,12 @@ export class MyComponent {
     @Prop() searchTermLength: number = 1;
 
     @Prop() customTemplate: boolean = false;
+
+    /**
+     * if true ignores casing when matching strings
+     * @default true
+     */
+    @Prop() ignoreCase: boolean = true;
 
     @Event() onFocus: EventEmitter<void>;
 
@@ -84,7 +85,8 @@ export class MyComponent {
                 this.hideList = false;
                 this.valuesToShow = searchInHtmlList(
                     this.dictionary,
-                    this.inputValue.split('@').pop()
+                    this.inputValue.split('@').pop(),
+                    this.ignoreCase
                 );
             }
         }
@@ -159,7 +161,7 @@ export class MyComponent {
                 <div hidden={this.hideList}>
                     <ul id='mention-list'>
                         {this.valuesToShow.map((slot: { key: string; value: any }) => (
-                            <li onClick={() => this.addValueToInput(slot)}>{slot.value}</li>
+                            <li class='mention-list-li' onClick={() => this.addValueToInput(slot)}>{slot.value}</li>
                         ))}
                     </ul>
                 </div>
