@@ -7,7 +7,7 @@ import {
     State,
     Element
 } from '@stencil/core';
-import { debounceEvent, searchInHtmlList } from '../../utils/utils';
+import { debounceEvent, searchInHtmlList, setCursorAtEnd } from '../../utils/utils';
 
 @Component({
     tag: 'sach-mention',
@@ -16,15 +16,18 @@ import { debounceEvent, searchInHtmlList } from '../../utils/utils';
 })
 export class SachMention {
 
+    focusedListItemIndex: number = -1;
+
     @State() hideList: boolean = true;
     @State() inputValue: string;
     @State() valuesToShow: Array<{ key: string; value: string }> = [];
 
+    @Element() element: HTMLElement;
+
+
     divStyle: any = {
         width: '250px'
     };
-
-    @Element() element: HTMLElement;
 
     @Prop() dictionary: Array<{ key: string; value: string }> = [
         {
@@ -34,6 +37,30 @@ export class SachMention {
         {
             key: '2',
             value: 'Katarina'
+        },
+        {
+            key: '3',
+            value: 'Joseph'
+        },
+        {
+            key: '4',
+            value: 'Rudolf'
+        },
+        {
+            key: '5',
+            value: 'Louis'
+        },
+        {
+            key: '6',
+            value: 'Marcus'
+        },
+        {
+            key: '7',
+            value: 'Azir'
+        },
+        {
+            key: '8',
+            value: 'Stefan'
         }
     ];
 
@@ -66,8 +93,49 @@ export class SachMention {
         this.onChange = debounceEvent(this.onChange, this.debounce);
     }
 
-    private onKeyDown = (event: KeyboardEvent) => {
-        if (event.key === '@') {
+
+    private focusListItem(focusPreviousListItem: boolean): void {
+        const listItemsCount: number = this.element.shadowRoot.querySelectorAll('li').length;
+        if (focusPreviousListItem) {
+            if (listItemsCount > 0) {
+                if (this.focusedListItemIndex <= 0) {
+                    const textbox: HTMLDivElement = this.element.shadowRoot.querySelector('#mention-textbox') as HTMLDivElement;
+                    textbox.focus();
+                    setCursorAtEnd(textbox);
+                } else {
+                    this.focusedListItemIndex--;
+                    this.element.shadowRoot.querySelectorAll('li')[this.focusedListItemIndex].focus();
+                }
+            }
+        } else {
+            if (listItemsCount > 0) {
+                if (this.focusedListItemIndex < listItemsCount) {
+                    this.focusedListItemIndex++;
+                    this.element.shadowRoot.querySelectorAll('li')[this.focusedListItemIndex].focus();
+                } else {
+                    this.element.shadowRoot.querySelectorAll('li')[listItemsCount - 1].focus();
+                }
+            }
+        }
+
+    }
+
+    private onkeyDownListItem = (event: KeyboardEvent, slot: { key: string; value: any }) => {
+        if (event.key === 'ArrowDown') {
+            this.focusListItem(false);
+        } else if (event.key === 'ArrowUp') {
+            this.focusListItem(true);
+        } else if (event.key === 'Enter') {
+            this.addValueToInput(slot);
+            event.preventDefault();
+        }
+    }
+
+    private onKeyDownTextBox = (event: KeyboardEvent) => {
+        if (event.key === 'ArrowDown') {
+            this.focusedListItemIndex = -1;
+            this.focusListItem(false);
+        } else if (event.key === '@') {
             this.hideList = false;
         }
     }
@@ -110,10 +178,7 @@ export class SachMention {
             slot.key
             } class="mention" contenteditable="false">${slot.value}</span>`;
         textbox.innerHTML += `&nbsp;`;
-        window.getSelection().removeAllRanges();
-        const range: Range = document.createRange();
-        range.setStart(textbox, textbox.childNodes.length);
-        window.getSelection().addRange(range);
+        setCursorAtEnd(textbox);
         if (textbox.innerHTML.indexOf('@') < 0) {
             this.hideList = true;
         }
@@ -146,7 +211,7 @@ export class SachMention {
                 id='mention-textbox'
                 contenteditable='true'
                 onInput={this.onInput}
-                onKeyDown={this.onKeyDown}
+                onKeyDown={this.onKeyDownTextBox}
                 onPaste={this.onPaste}
             />
         );
@@ -161,7 +226,13 @@ export class SachMention {
                 <div hidden={this.hideList}>
                     <ul id='mention-list'>
                         {this.valuesToShow.map((slot: { key: string; value: any }) => (
-                            <li class='mention-list-li' onClick={() => this.addValueToInput(slot)}>{slot.value}</li>
+                            <li
+                                tabindex='-1'
+                                class='mention-list-li'
+                                onClick={() => this.addValueToInput(slot)}
+                                onKeyDown={(event) => this.onkeyDownListItem(event, slot)}>
+                                {slot.value}
+                            </li>
                         ))}
                     </ul>
                 </div>

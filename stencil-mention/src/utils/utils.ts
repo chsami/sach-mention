@@ -42,3 +42,10 @@ export function searchInHtmlList(
     });
     return list;
 }
+
+export function setCursorAtEnd(textbox: HTMLElement) {
+    window.getSelection().removeAllRanges();
+    const range: Range = document.createRange();
+    range.setStart(textbox, textbox.childNodes.length);
+    window.getSelection().addRange(range);
+}
