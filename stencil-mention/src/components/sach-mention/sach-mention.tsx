@@ -9,6 +9,10 @@ import {
 } from '@stencil/core';
 import { debounceEvent, searchInHtmlList, setCursorAtEnd } from '../../utils/utils';
 
+/**
+ * BUG: https://stackoverflow.com/questions/49167241/cursor-moves-to-end-of-the-contenteditable-div-when-character-removed-from-div/49167718
+ */
+
 @Component({
     tag: 'sach-mention',
     styleUrls: ['sach-mention.scss'],
@@ -26,7 +30,8 @@ export class SachMention {
 
 
     divStyle: any = {
-        width: '250px'
+        display: 'inline-block'
+        /*width: '250px'*/
     };
 
     @Prop() dictionary: Array<{ key: string; value: string }> = [
@@ -132,6 +137,9 @@ export class SachMention {
     }
 
     private onKeyDownTextBox = (event: KeyboardEvent) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+        }
         if (event.key === 'ArrowDown') {
             this.focusedListItemIndex = -1;
             this.focusListItem(false);
@@ -140,17 +148,28 @@ export class SachMention {
         }
     }
 
+
     private onInput = (ev: Event) => {
         const input: HTMLInputElement = ev.target as HTMLInputElement | null;
         if (input) {
             this.inputValue = input.innerText || '';
-            if (
-                !this.inputValue.includes('@') ||
-                this.inputValue.length <= this.searchTermLength
-            ) {
-                this.hideList = true;
-            } else if (this.inputValue.length > this.searchTermLength) {
+            const getIndexForCharacter = this.inputValue.lastIndexOf('@');
+            if (this.inputValue.split(' ')[this.inputValue.split(' ').length - 1].includes('@')) {
                 this.hideList = false;
+            }
+            if (getIndexForCharacter < 0) {
+                this.hideList = true;
+             } else if (!this.hideList
+                && this.inputValue.substring(getIndexForCharacter, this.inputValue.length).includes(String.fromCharCode(160))) {
+                this.hideList = true;
+            } else if (!this.hideList && this.inputValue.charCodeAt(this.inputValue.length - 1) === 160) {
+                this.hideList = false;
+                this.valuesToShow = searchInHtmlList(
+                    this.dictionary,
+                    this.inputValue.split('@').pop(),
+                    this.ignoreCase
+                );
+            } else if (!this.hideList) {
                 this.valuesToShow = searchInHtmlList(
                     this.dictionary,
                     this.inputValue.split('@').pop(),
@@ -165,23 +184,29 @@ export class SachMention {
         const textbox: HTMLElement = this.element.shadowRoot.getElementById(
             'mention-textbox'
         );
+
         if (textbox.innerHTML.indexOf('@') < 0) {
             return;
         }
 
         textbox.innerHTML = textbox.innerHTML.substring(
             0,
-            textbox.innerHTML.indexOf('@')
+            textbox.innerHTML.lastIndexOf('@')
         );
 
-        textbox.innerHTML += `<span id=${
-            slot.key
-            } class="mention" contenteditable="false">${slot.value}</span>`;
-        textbox.innerHTML += `&nbsp;`;
-        setCursorAtEnd(textbox);
-        if (textbox.innerHTML.indexOf('@') < 0) {
-            this.hideList = true;
+        if (textbox.querySelector('div') === null) {
+            const div = document.createElement('div');
+            div.setAttribute('contenteditable', 'true');
+            div.setAttribute('style', 'display: inline-block');
+            textbox.appendChild(div);
         }
+
+        textbox.querySelector('div').innerHTML += `<span id=${
+            slot.key
+            } class="mention" contenteditable="false">@${slot.value}</span>`;
+        textbox.querySelector('div').innerHTML += `&nbsp;`;
+        setCursorAtEnd(textbox);
+        this.hideList = true;
         this.element.shadowRoot
             .querySelectorAll('.mention')
             .forEach((element: HTMLElement) => {
@@ -205,17 +230,6 @@ export class SachMention {
         this.debounceChanged();
     }
 
-    renderInput = () => {
-        return (
-            <div
-                id='mention-textbox'
-                contenteditable='true'
-                onInput={this.onInput}
-                onKeyDown={this.onKeyDownTextBox}
-                onPaste={this.onPaste}
-            />
-        );
-    }
 
     renderListMenu = () => {
         return this.customTemplate ? (
@@ -239,12 +253,27 @@ export class SachMention {
             );
     }
 
-    render(): any {
+    renderInput = () => {
         return (
-            <div style={this.divStyle}>
-                <this.renderInput />
-                <this.renderListMenu />
+            <div
+                contenteditable='true'
+                style={this.divStyle}
+            >
             </div>
         );
+    }
+
+    render(): any {
+        return [
+            <div
+                id='mention-textbox'
+                contenteditable='true'
+                onKeyDown={this.onKeyDownTextBox}
+                onInput={this.onInput}
+                onPaste={this.onPaste}>
+                <this.renderInput />
+            </div>,
+            <this.renderListMenu />
+        ];
     }
 }

@@ -43,7 +43,7 @@ export function searchInHtmlList(
     return list;
 }
 
-export function setCursorAtEnd(textbox: HTMLElement) {
+export function setCursorAtEnd(textbox: HTMLElement): void {
     window.getSelection().removeAllRanges();
     const range: Range = document.createRange();
     range.setStart(textbox, textbox.childNodes.length);
