@@ -137,6 +137,14 @@ export class SachMention {
     }
 
     private onKeyDownTextBox = (event: KeyboardEvent) => {
+        if (event.key === 'Backspace') {
+            const textbox: HTMLElement = this.element.shadowRoot.getElementById(
+                'mention-textbox'
+            );
+            if (textbox.innerText.length < 2) {
+                event.preventDefault();
+            }
+        }
         if (event.key === 'Enter') {
             event.preventDefault();
         }
@@ -145,34 +153,44 @@ export class SachMention {
             this.focusListItem(false);
         } else if (event.key === '@') {
             this.hideList = false;
+            console.log("do it");
         }
     }
 
-
+    private findFirstDiffPos = (a, b) => {
+        var i = 0;
+        if (a === b) return -1;
+        while (a[i] === b[i]) i++;
+        return i;
+    }
+    @State() cursorPosition: number;
     private onInput = (ev: Event) => {
         const input: HTMLInputElement = ev.target as HTMLInputElement | null;
         if (input) {
+            const getIndexForCharacter = this.inputValue
+            ? input.innerText.indexOf('@', this.findFirstDiffPos(input.innerText, this.inputValue) - 1)
+            : -1;
+            this.cursorPosition = getIndexForCharacter;
             this.inputValue = input.innerText || '';
-            const getIndexForCharacter = this.inputValue.lastIndexOf('@');
             if (this.inputValue.split(' ')[this.inputValue.split(' ').length - 1].includes('@')) {
                 this.hideList = false;
             }
             if (getIndexForCharacter < 0) {
                 this.hideList = true;
-             } else if (!this.hideList
+            } else if (!this.hideList
                 && this.inputValue.substring(getIndexForCharacter, this.inputValue.length).includes(String.fromCharCode(160))) {
                 this.hideList = true;
             } else if (!this.hideList && this.inputValue.charCodeAt(this.inputValue.length - 1) === 160) {
                 this.hideList = false;
                 this.valuesToShow = searchInHtmlList(
                     this.dictionary,
-                    this.inputValue.split('@').pop(),
+                    this.inputValue.substring(getIndexForCharacter + 1, this.inputValue.length).split(' ')[0],
                     this.ignoreCase
                 );
             } else if (!this.hideList) {
                 this.valuesToShow = searchInHtmlList(
                     this.dictionary,
-                    this.inputValue.split('@').pop(),
+                    this.inputValue.substring(getIndexForCharacter + 1, this.inputValue.length).split(' ')[0],
                     this.ignoreCase
                 );
             }
@@ -188,11 +206,15 @@ export class SachMention {
         if (textbox.innerHTML.indexOf('@') < 0) {
             return;
         }
-
+        debugger;
+        //we should split the text right at the @ symbol and paste the remaning after it
+        
+        //const toAdd = textbox.innerHTML.split('@')[textbox.innerHTML.split('@').length - 1];
         textbox.innerHTML = textbox.innerHTML.substring(
             0,
             textbox.innerHTML.lastIndexOf('@')
         );
+        // textbox.innerHTML += toAdd;
 
         if (textbox.querySelector('div') === null) {
             const div = document.createElement('div');
@@ -259,6 +281,7 @@ export class SachMention {
                 contenteditable='true'
                 style={this.divStyle}
             >
+                &nbsp;
             </div>
         );
     }
