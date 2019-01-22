@@ -1,302 +1,373 @@
 import {
-    Component,
-    Prop,
-    EventEmitter,
-    Event,
-    Watch,
-    State,
-    Element
+  Component,
+  Prop,
+  EventEmitter,
+  Event,
+  Watch,
+  State,
+  Element
 } from '@stencil/core';
-import { debounceEvent, searchInHtmlList, setCursorAtEnd } from '../../utils/utils';
+import {
+  debounceEvent,
+  searchInHtmlList,
+  SetCaretPosition
+} from '../../utils/utils';
 
 /**
  * BUG: https://stackoverflow.com/questions/49167241/cursor-moves-to-end-of-the-contenteditable-div-when-character-removed-from-div/49167718
  */
 
+/**
+ * Problem with the &nbsp character
+ */
 @Component({
-    tag: 'sach-mention',
-    styleUrls: ['sach-mention.scss'],
-    shadow: true
+  tag: 'sach-mention',
+  styleUrls: ['sach-mention.scss'],
+  shadow: true
 })
 export class SachMention {
+  focusedListItemIndex: number = -1;
 
-    focusedListItemIndex: number = -1;
+  @State() hideList: boolean = true;
+  @State() inputValue: string;
+  @State() valuesToShow: Array<{ key: string; value: string }> = [];
+  @State() cursorPosition: number;
 
-    @State() hideList: boolean = true;
-    @State() inputValue: string;
-    @State() valuesToShow: Array<{ key: string; value: string }> = [];
+  @Element() element: HTMLElement;
 
-    @Element() element: HTMLElement;
+  divStyle: any = {
+    display: 'inline-block'
+    /*width: '250px'*/
+  };
 
-
-    divStyle: any = {
-        display: 'inline-block'
-        /*width: '250px'*/
-    };
-
-    @Prop() dictionary: Array<{ key: string; value: string }> = [
-        {
-            key: '1',
-            value: 'Andy'
-        },
-        {
-            key: '2',
-            value: 'Katarina'
-        },
-        {
-            key: '3',
-            value: 'Joseph'
-        },
-        {
-            key: '4',
-            value: 'Rudolf'
-        },
-        {
-            key: '5',
-            value: 'Louis'
-        },
-        {
-            key: '6',
-            value: 'Marcus'
-        },
-        {
-            key: '7',
-            value: 'Azir'
-        },
-        {
-            key: '8',
-            value: 'Stefan'
-        }
-    ];
-
-    /**
-     * Set the amount of time, in milliseconds, to wait to trigger the `onChange` event after each keystroke.
-     */
-    @Prop() debounce: number = 0;
-
-    @Prop() searchTermLength: number = 1;
-
-    @Prop() customTemplate: boolean = false;
-
-    /**
-     * if true ignores casing when matching strings
-     * @default true
-     */
-    @Prop() ignoreCase: boolean = true;
-
-    @Event() onFocus: EventEmitter<void>;
-
-    @Event() onChange: EventEmitter<string>;
-
-    /**
-     * Emitted when a keyboard input ocurred.
-     */
-    @Event() inputEvent!: EventEmitter<KeyboardEvent>;
-
-    @Watch('debounce')
-    protected debounceChanged(): void {
-        this.onChange = debounceEvent(this.onChange, this.debounce);
+  @Prop() dictionary: Array<{ key: string; value: string }> = [
+    {
+      key: '1',
+      value: 'Andy'
+    },
+    {
+      key: '2',
+      value: 'Katarina'
+    },
+    {
+      key: '3',
+      value: 'Joseph'
+    },
+    {
+      key: '4',
+      value: 'Rudolf'
+    },
+    {
+      key: '5',
+      value: 'Louis'
+    },
+    {
+      key: '6',
+      value: 'Marcus'
+    },
+    {
+      key: '7',
+      value: 'Azir'
+    },
+    {
+      key: '8',
+      value: 'Stefan'
     }
+  ];
 
+  /**
+   * Set the amount of time, in milliseconds, to wait to trigger the `onChange` event after each keystroke.
+   */
+  @Prop() debounce: number = 0;
 
-    private focusListItem(focusPreviousListItem: boolean): void {
-        const listItemsCount: number = this.element.shadowRoot.querySelectorAll('li').length;
-        if (focusPreviousListItem) {
-            if (listItemsCount > 0) {
-                if (this.focusedListItemIndex <= 0) {
-                    const textbox: HTMLDivElement = this.element.shadowRoot.querySelector('#mention-textbox') as HTMLDivElement;
-                    textbox.focus();
-                    setCursorAtEnd(textbox);
-                } else {
-                    this.focusedListItemIndex--;
-                    this.element.shadowRoot.querySelectorAll('li')[this.focusedListItemIndex].focus();
-                }
-            }
+  @Prop() searchTermLength: number = 1;
+
+  @Prop() customTemplate: boolean = false;
+
+  /**
+   * if true ignores casing when matching strings
+   * @default true
+   */
+  @Prop() ignoreCase: boolean = true;
+
+  @Event() onFocus: EventEmitter<void>;
+
+  @Event() onChange: EventEmitter<string>;
+
+  /**
+   * Emitted when a keyboard input ocurred.
+   */
+  @Event() inputEvent!: EventEmitter<KeyboardEvent>;
+
+  @Watch('debounce')
+  protected debounceChanged(): void {
+    this.onChange = debounceEvent(this.onChange, this.debounce);
+  }
+
+  private focusListItem(focusPreviousListItem: boolean): void {
+    const listItemsCount: number = this.element.shadowRoot.querySelectorAll(
+      'li'
+    ).length;
+    if (focusPreviousListItem) {
+      if (listItemsCount > 0) {
+        if (this.focusedListItemIndex > 0) {
+          this.focusedListItemIndex--;
+          this.element.shadowRoot
+            .querySelectorAll('li')
+            [this.focusedListItemIndex].focus();
+        }
+      }
+    } else {
+      if (listItemsCount > 0) {
+        if (this.focusedListItemIndex < listItemsCount) {
+          this.focusedListItemIndex++;
+          this.element.shadowRoot
+            .querySelectorAll('li')
+            [this.focusedListItemIndex].focus();
         } else {
-            if (listItemsCount > 0) {
-                if (this.focusedListItemIndex < listItemsCount) {
-                    this.focusedListItemIndex++;
-                    this.element.shadowRoot.querySelectorAll('li')[this.focusedListItemIndex].focus();
-                } else {
-                    this.element.shadowRoot.querySelectorAll('li')[listItemsCount - 1].focus();
-                }
-            }
+          this.element.shadowRoot
+            .querySelectorAll('li')
+            [listItemsCount - 1].focus();
         }
-
+      }
     }
+  }
 
-    private onkeyDownListItem = (event: KeyboardEvent, slot: { key: string; value: any }) => {
-        if (event.key === 'ArrowDown') {
-            this.focusListItem(false);
-        } else if (event.key === 'ArrowUp') {
-            this.focusListItem(true);
-        } else if (event.key === 'Enter') {
-            this.addValueToInput(slot);
-            event.preventDefault();
+  getCaretPosition(node) {
+    var range = this.element.shadowRoot.getSelection().getRangeAt(0),
+      preCaretRange = range.cloneRange(),
+      caretPosition,
+      tmp = document.createElement('div');
+
+    preCaretRange.selectNodeContents(node);
+    preCaretRange.setEnd(range.endContainer, range.endOffset);
+    tmp.appendChild(preCaretRange.cloneContents());
+    caretPosition = tmp.innerHTML.length;
+    return caretPosition;
+  }
+
+  restoreSelection(range) {
+    if (range) {
+      if (this.element.shadowRoot.getSelection) {
+        let sel: Selection = this.element.shadowRoot.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }
+  }
+
+  pasteHtmlAtCaret(html, selectPastedContent) {
+    let sel: Selection;
+    let range: Range;
+    if (this.element.shadowRoot.getSelection) {
+      // IE9 and non-IE
+      sel = this.element.shadowRoot.getSelection();
+      if (sel.getRangeAt && sel.rangeCount) {
+        range = sel.getRangeAt(0);
+        range.deleteContents();
+
+        var el = document.createElement('div');
+        el.innerHTML = html;
+        var frag = document.createDocumentFragment(),
+          node,
+          lastNode;
+        while ((node = el.firstChild)) {
+          lastNode = frag.appendChild(node);
         }
-    }
+        var firstNode = frag.firstChild;
+        range.insertNode(frag);
 
-    private onKeyDownTextBox = (event: KeyboardEvent) => {
-        if (event.key === 'Backspace') {
-            const textbox: HTMLElement = this.element.shadowRoot.getElementById(
-                'mention-textbox'
-            );
-            if (textbox.innerText.length < 2) {
-                event.preventDefault();
-            }
+        // Preserve the selection
+        if (lastNode) {
+          range = range.cloneRange();
+          range.setStartAfter(lastNode);
+          if (selectPastedContent) {
+            range.setStartBefore(firstNode);
+          } else {
+            range.collapse(true);
+          }
+          sel.removeAllRanges();
+          sel.addRange(range);
         }
-        if (event.key === 'Enter') {
-            event.preventDefault();
-        }
-        if (event.key === 'ArrowDown') {
-            this.focusedListItemIndex = -1;
-            this.focusListItem(false);
-        } else if (event.key === '@') {
-            this.hideList = false;
-            console.log("do it");
-        }
+      }
+    }
+  }
+
+  private onkeyDownListItem = (
+    event: KeyboardEvent,
+    slot: { key: string; value: any }
+  ) => {
+    if (event.key === 'ArrowDown') {
+      this.focusListItem(false);
+    } else if (event.key === 'ArrowUp') {
+      this.focusListItem(true);
+    } else if (event.key === 'Enter') {
+      this.addValueToInput(slot);
+      event.preventDefault();
+    }
+  };
+
+  private onKeyDownTextBox = (event: KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+    }
+    if (event.key === 'ArrowDown') {
+      this.focusedListItemIndex = -1;
+      this.focusListItem(false);
+    } else if (event.key === '@') {
+      this.hideList = false;
+    }
+  };
+
+  private findFirstDiffPos = (a, b) => {
+    let i = 0;
+    if (a === b) {
+      return -1;
+    }
+    while (a[i] === b[i]) {
+      i++;
+    }
+    return i;
+  };
+
+  //Filter based on what input value is
+  private onInput = (ev: Event) => {
+    const input: HTMLInputElement = ev.target as HTMLInputElement | null;
+    if (input.innerText.length === 0) {
+      this.hideList = true;
+      return;
     }
 
-    private findFirstDiffPos = (a, b) => {
-        var i = 0;
-        if (a === b) return -1;
-        while (a[i] === b[i]) i++;
-        return i;
-    }
-    @State() cursorPosition: number;
-    private onInput = (ev: Event) => {
-        const input: HTMLInputElement = ev.target as HTMLInputElement | null;
-        if (input) {
-            const getIndexForCharacter = this.inputValue
-            ? input.innerText.indexOf('@', this.findFirstDiffPos(input.innerText, this.inputValue) - 1)
-            : -1;
-            this.cursorPosition = getIndexForCharacter;
-            this.inputValue = input.innerText || '';
-            if (this.inputValue.split(' ')[this.inputValue.split(' ').length - 1].includes('@')) {
-                this.hideList = false;
-            }
-            if (getIndexForCharacter < 0) {
-                this.hideList = true;
-            } else if (!this.hideList
-                && this.inputValue.substring(getIndexForCharacter, this.inputValue.length).includes(String.fromCharCode(160))) {
-                this.hideList = true;
-            } else if (!this.hideList && this.inputValue.charCodeAt(this.inputValue.length - 1) === 160) {
-                this.hideList = false;
-                this.valuesToShow = searchInHtmlList(
-                    this.dictionary,
-                    this.inputValue.substring(getIndexForCharacter + 1, this.inputValue.length).split(' ')[0],
-                    this.ignoreCase
-                );
-            } else if (!this.hideList) {
-                this.valuesToShow = searchInHtmlList(
-                    this.dictionary,
-                    this.inputValue.substring(getIndexForCharacter + 1, this.inputValue.length).split(' ')[0],
-                    this.ignoreCase
-                );
-            }
-        }
-        this.inputEvent.emit(ev as KeyboardEvent);
+    const getIndexForCharacter = this.inputValue
+      ? input.innerText
+          .substring(0, this.findFirstDiffPos(input.innerText, this.inputValue))
+          .lastIndexOf('@')
+      : -1;
+
+    this.inputValue = input.innerText;
+    this.cursorPosition = getIndexForCharacter;
+
+    let searchTerm: string = input.innerText.substring(
+      getIndexForCharacter + 1,
+      input.innerText.indexOf('@', getIndexForCharacter + 1) > -1
+        ? input.innerText.indexOf('@', getIndexForCharacter + 1)
+        : input.innerText.length
+    );
+
+    if (searchTerm.includes(' ')) {
+      searchTerm = searchTerm.split(' ')[0];
     }
 
-    private addValueToInput(slot: { key: string; value: any }): void {
-        const textbox: HTMLElement = this.element.shadowRoot.getElementById(
-            'mention-textbox'
-        );
-
-        if (textbox.innerHTML.indexOf('@') < 0) {
-            return;
-        }
-        debugger;
-        //we should split the text right at the @ symbol and paste the remaning after it
-        
-        //const toAdd = textbox.innerHTML.split('@')[textbox.innerHTML.split('@').length - 1];
-        textbox.innerHTML = textbox.innerHTML.substring(
-            0,
-            textbox.innerHTML.lastIndexOf('@')
-        );
-        // textbox.innerHTML += toAdd;
-
-        if (textbox.querySelector('div') === null) {
-            const div = document.createElement('div');
-            div.setAttribute('contenteditable', 'true');
-            div.setAttribute('style', 'display: inline-block');
-            textbox.appendChild(div);
-        }
-
-        textbox.querySelector('div').innerHTML += `<span id=${
-            slot.key
-            } class="mention" contenteditable="false">@${slot.value}</span>`;
-        textbox.querySelector('div').innerHTML += `&nbsp;`;
-        setCursorAtEnd(textbox);
-        this.hideList = true;
-        this.element.shadowRoot
-            .querySelectorAll('.mention')
-            .forEach((element: HTMLElement) => {
-                element.onclick = function (): any {
-                    alert(element.getAttribute('id'));
-                };
-            });
+    if (!this.hideList) {
+      this.valuesToShow = searchInHtmlList(
+        this.dictionary, //hardcoded list
+        searchTerm,
+        this.ignoreCase
+      );
     }
+    this.inputEvent.emit(ev as KeyboardEvent);
+  };
 
-    private onPaste(event: any): void {
-        event.preventDefault();
-
-        // get text representation of clipboard
-        const text: any = event.clipboardData.getData('text/plain');
-
-        // insert text manually
-        document.execCommand('insertHTML', false, text);
+  placeCaretAtEnd(el) {
+    el.focus();
+    if (
+      typeof window.getSelection != 'undefined' &&
+      typeof document.createRange != 'undefined'
+    ) {
+      var range = document.createRange();
+      range.selectNodeContents(el);
+      range.collapse(false);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
     }
+  }
 
-    componentDidLoad(): void {
-        this.debounceChanged();
+  private addValueToInput(slot: { key: string; value: any }): void {
+    const textbox: HTMLElement = this.element.shadowRoot.getElementById(
+      'mention-textbox'
+    );
+
+    if (textbox.innerHTML.indexOf('@') < 0) {
+      return;
     }
 
 
-    renderListMenu = () => {
-        return this.customTemplate ? (
-            <div hidden={!this.hideList}>
-                <slot name='list-menu' />
-            </div>
-        ) : (
-                <div hidden={this.hideList}>
-                    <ul id='mention-list'>
-                        {this.valuesToShow.map((slot: { key: string; value: any }) => (
-                            <li
-                                tabindex='-1'
-                                class='mention-list-li'
-                                onClick={() => this.addValueToInput(slot)}
-                                onKeyDown={(event) => this.onkeyDownListItem(event, slot)}>
-                                {slot.value}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            );
-    }
+    let wordToDelete = textbox.innerText.substring(this.cursorPosition, 
+      textbox.innerText.length
+      );
 
-    renderInput = () => {
-        return (
-            <div
-                contenteditable='true'
-                style={this.divStyle}
+    if (wordToDelete.length > 0)
+      textbox.innerHTML = textbox.innerHTML.replace(wordToDelete.split(' ')[0], '');
+
+    let html: string = `&nbsp;@<span id=${
+      slot.key
+    } class="mention" contenteditable="false">${slot.value}</span>`;
+
+    textbox.focus();
+    SetCaretPosition(
+      this.element.shadowRoot.getElementById('mention-textbox'),
+      (this.cursorPosition)
+    );
+    this.pasteHtmlAtCaret(html, false);
+    this.hideList = true;
+  }
+
+  private onPaste(event: any): void {
+    event.preventDefault();
+
+    // get text representation of clipboard
+    const text: any = event.clipboardData.getData('text/plain');
+
+    // insert text manually
+    document.execCommand('insertHTML', false, text);
+  }
+
+  componentDidLoad(): void {
+    this.debounceChanged();
+  }
+
+  renderListMenu = () => {
+    return this.customTemplate ? (
+      <div hidden={!this.hideList}>
+        <slot name="list-menu" />
+      </div>
+    ) : (
+      <div hidden={this.valuesToShow.length === 0 || this.hideList}>
+        <ul id="mention-list">
+          {this.valuesToShow.map((slot: { key: string; value: any }) => (
+            <li
+              tabindex="-1"
+              class="mention-list-li"
+              onClick={() => this.addValueToInput(slot)}
+              onKeyDown={event => this.onkeyDownListItem(event, slot)}
             >
-                &nbsp;
-            </div>
-        );
-    }
+              {slot.value}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
 
-    render(): any {
-        return [
-            <div
-                id='mention-textbox'
-                contenteditable='true'
-                onKeyDown={this.onKeyDownTextBox}
-                onInput={this.onInput}
-                onPaste={this.onPaste}>
-                <this.renderInput />
-            </div>,
-            <this.renderListMenu />
-        ];
-    }
+  renderInput = () => {
+    return (
+      <div contenteditable="true" style={this.divStyle}>
+        &nbsp;
+      </div>
+    );
+  };
+
+  render(): any {
+    return [
+      <div
+        id="mention-textbox"
+        contenteditable="true"
+        onKeyDown={this.onKeyDownTextBox}
+        onInput={this.onInput}
+        onPaste={this.onPaste}
+      />,
+      <this.renderListMenu />
+    ];
+  }
 }
