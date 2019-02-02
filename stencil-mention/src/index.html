@@ -26,11 +26,11 @@
   <div style="border: 1px solid grey; padding:10px; margin-top: 5%; width: 30%;">
     <h5>Options</h5>
     <hr />
-    Custom Template for the list items
-    <input type="checkbox" unchecked onclick="triggerListTemplate()" />
+    <label for="listTemplate">Custom Template for the list items</label>
+    <input type="checkbox" id="listTemplate" unchecked onclick="triggerListTemplate()" />
     <br />
-    Custom Template for the items within the mention component
-    <input type="checkbox" unchecked onclick="triggerItemTemplate()" />
+    <label for="itemTemplate">Custom Template for the items within the mention component</label>
+    <input type="checkbox" id="itemTemplate" unchecked onclick="triggerItemTemplate()" />
   </div>
   <script>
     const comp = document.querySelector('sach-mention');
