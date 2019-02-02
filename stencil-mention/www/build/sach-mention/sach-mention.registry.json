@@ -1,0 +1,15 @@
+{
+  "namespace": "SachMention",
+  "fsNamespace": "sach-mention",
+  "loader": "../sach-mention.js",
+  "corePolyfilled": "es5-build-disabled.js",
+  "core": "sach-mention.core.js",
+  "components": {
+    "sach-mention": {
+      "bundleIds": {
+        "$": "sach-mention"
+      },
+      "encapsulation": "shadow"
+    }
+  }
+}
