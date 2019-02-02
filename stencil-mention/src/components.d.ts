@@ -16,7 +16,6 @@ import {
 export namespace Components {
 
   interface SachMention {
-    'customTemplate': boolean;
     /**
     * Set the amount of time, in milliseconds, to wait to trigger the `onChange` event after each keystroke.
     */
@@ -26,10 +25,11 @@ export namespace Components {
     * if true ignores casing when matching strings
     */
     'ignoreCase': boolean;
+    'itemTemplate': (key: any, value: any) => string;
+    'menuTemplate': (value: any) => string;
     'searchTermLength': number;
   }
   interface SachMentionAttributes extends StencilHTMLAttributes {
-    'customTemplate'?: boolean;
     /**
     * Set the amount of time, in milliseconds, to wait to trigger the `onChange` event after each keystroke.
     */
@@ -39,6 +39,8 @@ export namespace Components {
     * if true ignores casing when matching strings
     */
     'ignoreCase'?: boolean;
+    'itemTemplate'?: (key: any, value: any) => string;
+    'menuTemplate'?: (value: any) => string;
     /**
     * Emitted when a keyboard input ocurred.
     */

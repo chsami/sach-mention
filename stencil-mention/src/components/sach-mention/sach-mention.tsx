@@ -82,7 +82,10 @@ export class SachMention {
 
   @Prop() searchTermLength: number = 1;
 
-  @Prop() customTemplate: boolean = false;
+  @Prop() menuTemplate: (value: any) => string = null;
+
+  @Prop() itemTemplate: (key: any, value: any) => string = null;
+
 
   /**
    * if true ignores casing when matching strings
@@ -292,22 +295,32 @@ export class SachMention {
       return;
     }
 
-
-    let wordToDelete = textbox.innerText.substring(this.cursorPosition, 
+    let wordToDelete = textbox.innerText.substring(
+      this.cursorPosition,
       textbox.innerText.length
-      );
+    );
 
     if (wordToDelete.length > 0)
-      textbox.innerHTML = textbox.innerHTML.replace(wordToDelete.split(' ')[0], '');
+      textbox.innerHTML = textbox.innerHTML.replace(
+        wordToDelete.split(' ')[0],
+        ''
+      );
 
-    let html: string = `&nbsp;@<span id=${
-      slot.key
-    } class="mention" contenteditable="false">${slot.value}</span>`;
+    let html: string = '';
 
+    if (this.itemTemplate) {
+      html = `&nbsp;${this.itemTemplate(slot.key, slot.value)}`;
+    } else {
+      html = `&nbsp;@<span id=${
+        slot.key
+      } class="mention" contenteditable="false">${slot.value}</span>`;
+    }
+
+    
     textbox.focus();
     SetCaretPosition(
       this.element.shadowRoot.getElementById('mention-textbox'),
-      (this.cursorPosition)
+      this.cursorPosition
     );
     this.pasteHtmlAtCaret(html, false);
     this.hideList = true;
@@ -328,9 +341,20 @@ export class SachMention {
   }
 
   renderListMenu = () => {
-    return this.customTemplate ? (
-      <div hidden={!this.hideList}>
-        <slot name="list-menu" />
+    return this.menuTemplate ? (
+      <div hidden={this.valuesToShow.length === 0 || this.hideList}>
+        <ul id="mention-list">
+          {this.valuesToShow.map((slot: { key: string; value: any }) => (
+            <li
+              tabindex="-1"
+              class="mention-list-li"
+              onClick={() => this.addValueToInput(slot)}
+              onKeyDown={event => this.onkeyDownListItem(event, slot)}
+            >
+              <div innerHTML={this.menuTemplate(slot.value)} />
+            </li>
+          ))}
+        </ul>
       </div>
     ) : (
       <div hidden={this.valuesToShow.length === 0 || this.hideList}>

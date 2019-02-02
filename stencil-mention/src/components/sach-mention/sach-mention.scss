@@ -1,30 +1,40 @@
 :host {
-    color: blue;
-    .mention {
-        color: #1DA1F2;
-        cursor: pointer;
+  color: blue;
+
+  .mention {
+    color: #1DA1F2;
+    cursor: pointer;
+  }
+
+  #mention-list {
+    li {
+      list-style: none;
+      cursor: pointer;
+      color: black;
+
+      &:hover,
+      &:focus {
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+
+      padding: 8px;
     }
-    #mention-list {
-        li {
-            list-style: none;
-            cursor: pointer;
-            color: black;
-            &:hover, &:focus {
-                background-color: rgba(0, 0, 0, 0.05);
-            }
-            padding: 8px;
-        }
-        position: absolute;
-        background-color: white;
-        padding-left: 0px;
-        display: inline-block;
-        width: 250px;
-        box-shadow: 0 5px 5px -3px rgba(0,0,0,.2), 0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12);
-    }
-    #mention-textbox {
-        box-shadow: 0 5px 5px -3px rgba(0,0,0,.2), 0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12);
-       padding: 10px;
-        color: black;
-        width: 50%;
-    }
+
+    position: absolute;
+    background-color: white;
+    padding-left: 0px;
+    display: inline-block;
+    width: 250px;
+    box-shadow: 0 5px 5px -3px rgba(0, 0, 0, .2),
+    0 8px 10px 1px rgba(0, 0, 0, .14),
+    0 3px 14px 2px rgba(0, 0, 0, .12);
+  }
+
+  #mention-textbox {
+    line-height: 2;
+    box-shadow: 0 5px 5px -3px rgba(0, 0, 0, .2), 0 8px 10px 1px rgba(0, 0, 0, .14), 0 3px 14px 2px rgba(0, 0, 0, .12);
+    padding: 10px;
+    color: black;
+    width: 50%;
+  }
 }
