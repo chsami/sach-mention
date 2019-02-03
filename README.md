@@ -2,6 +2,10 @@
 
 This is a mention component based on how twitter works. Pressing the @ key will trigger a list item interface to choose from. This is currently working with contenteditable divs
 
+# Demo
+
+https://chsami.github.io/sach-mention/www/index.html
+
 ## Getting Started
 
 ### Prerequisites
