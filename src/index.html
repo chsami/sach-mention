@@ -1,64 +1,84 @@
 <!DOCTYPE html>
 <html dir="ltr" lang="en">
-
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0">
-  <title>Stencil Component Starter</title>
-  <script src="build/sach-mention.js"></script>
-  <style>
-    .listItem {
-      color: rgb(42, 46, 49);
-    }
-
-    .listItem:hover {
-      background-color: rgb(199, 189, 176);
-    }
-
-  </style>
-</head>
-
-<body>
-  <h1>Sach Mention WebComponent!</h1>
-  <h4>type '@' to trigger the mention</h4>
-  <sach-mention mode="mycomp">
-  </sach-mention>
-  <div style="border: 1px solid grey; padding:10px; margin-top: 5%; width: 30%;">
-    <h5>Options</h5>
-    <hr />
-    <label for="listTemplate">Custom Template for the list items</label>
-    <input type="checkbox" id="listTemplate" unchecked onclick="triggerListTemplate()" />
-    <br />
-    <label for="itemTemplate">Custom Template for the items within the mention component</label>
-    <input type="checkbox" id="itemTemplate" unchecked onclick="triggerItemTemplate()" />
-  </div>
-  <script>
-    const comp = document.querySelector('sach-mention');
-
-    function triggerListTemplate() {
-      if (!comp.listTemplate) {
-        comp.listTemplate = (item) => {
-          return `<span class="listItem">${item}</span>`
-        }
-      } else {
-        comp.listTemplate = null;
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0"
+    />
+    <title>Stencil Component Starter</title>
+    <script src="build/sach-mention.js"></script>
+    <style>
+      .listItem {
+        color: rgb(42, 46, 49);
       }
-    }
 
-    function triggerItemTemplate() {
-      if (!comp.itemTemplate) {
-        comp.itemTemplate = (key, item) => {
-          return `<span id=${key} style="
+      .listItem:hover {
+        background-color: rgb(199, 189, 176);
+      }
+      body {
+        opacity: 0;
+        transition: all 1s;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Sach Mention WebComponent!</h1>
+    <h4>type '@' to trigger the mention</h4>
+    <sach-mention mode="mycomp"> </sach-mention>
+    <div
+      style="border: 1px solid grey; padding:10px; margin-top: 5%; width: 30%;"
+    >
+      <h5>Options</h5>
+      <hr />
+      <label for="listTemplate">Custom Template for the list items</label>
+      <input
+        type="checkbox"
+        id="listTemplate"
+        unchecked
+        onclick="triggerListTemplate()"
+      />
+      <br />
+      <label for="itemTemplate"
+        >Custom Template for the items within the mention component</label
+      >
+      <input
+        type="checkbox"
+        id="itemTemplate"
+        unchecked
+        onclick="triggerItemTemplate()"
+      />
+    </div>
+    <script>
+      const comp = document.querySelector('sach-mention');
+
+      function triggerListTemplate() {
+        if (!comp.listTemplate) {
+          comp.listTemplate = item => {
+            return `<span class="listItem">${item}</span>`;
+          };
+        } else {
+          comp.listTemplate = null;
+        }
+      }
+
+      function triggerItemTemplate() {
+        if (!comp.itemTemplate) {
+          comp.itemTemplate = (key, item) => {
+            return `<span id=${key} style="
         background-color: deepskyblue;
         padding: 6px;
-        border-radius: 10px;" contenteditable="false">${item}</span>`
+        border-radius: 10px;" contenteditable="false">${item}</span>`;
+          };
+        } else {
+          comp.itemTemplate = null;
         }
-      } else {
-        comp.itemTemplate = null;
       }
-    }
 
-  </script>
-</body>
-
+      window.onload = () => {
+        document.body.style.opacity = '1';
+      };
+    </script>
+  </body>
 </html>
