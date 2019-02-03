@@ -93,6 +93,8 @@ export class SachMention {
    */
   @Prop() ignoreCase: boolean = true;
 
+  @Prop() delimiter: string = '@'
+
   @Event() onFocus: EventEmitter<void>;
 
   @Event() onChange: EventEmitter<string>;
@@ -217,7 +219,7 @@ export class SachMention {
     if (event.key === 'ArrowDown') {
       this.focusedListItemIndex = -1;
       this.focusListItem(false);
-    } else if (event.key === '@') {
+    } else if (event.key === this.delimiter) {
       this.hideList = false;
     }
   };
@@ -244,7 +246,7 @@ export class SachMention {
     const getIndexForCharacter = this.inputValue
       ? input.innerText
           .substring(0, this.findFirstDiffPos(input.innerText, this.inputValue))
-          .lastIndexOf('@')
+          .lastIndexOf(this.delimiter)
       : -1;
 
     this.inputValue = input.innerText;
@@ -252,8 +254,8 @@ export class SachMention {
 
     let searchTerm: string = input.innerText.substring(
       getIndexForCharacter + 1,
-      input.innerText.indexOf('@', getIndexForCharacter + 1) > -1
-        ? input.innerText.indexOf('@', getIndexForCharacter + 1)
+      input.innerText.indexOf(this.delimiter, getIndexForCharacter + 1) > -1
+        ? input.innerText.indexOf(this.delimiter, getIndexForCharacter + 1)
         : input.innerText.length
     );
 
@@ -291,7 +293,7 @@ export class SachMention {
       'mention-textbox'
     );
 
-    if (textbox.innerHTML.indexOf('@') < 0) {
+    if (textbox.innerHTML.indexOf(this.delimiter) < 0) {
       return;
     }
 
