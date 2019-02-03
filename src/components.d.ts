@@ -20,11 +20,13 @@ export namespace Components {
     * Set the amount of time, in milliseconds, to wait to trigger the `onChange` event after each keystroke.
     */
     'debounce': number;
+    'delimiter': string;
     'dictionary': Array<{ key: string; value: string }>;
     /**
     * if true ignores casing when matching strings
     */
     'ignoreCase': boolean;
+    'itemClick': any;
     'itemTemplate': (key: any, value: any) => string;
     'menuTemplate': (value: any) => string;
     'searchTermLength': number;
@@ -34,11 +36,13 @@ export namespace Components {
     * Set the amount of time, in milliseconds, to wait to trigger the `onChange` event after each keystroke.
     */
     'debounce'?: number;
+    'delimiter'?: string;
     'dictionary'?: Array<{ key: string; value: string }>;
     /**
     * if true ignores casing when matching strings
     */
     'ignoreCase'?: boolean;
+    'itemClick'?: any;
     'itemTemplate'?: (key: any, value: any) => string;
     'menuTemplate'?: (value: any) => string;
     /**

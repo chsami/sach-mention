@@ -67,6 +67,42 @@ function SetCaretPosition(el, pos) {
     }
     return pos; // needed because of recursion stuff
 }
+function pasteHtmlAtCaret(shadowRoot, html, selectPastedContent, action) {
+    let sel;
+    let range;
+    if (shadowRoot.getSelection) {
+        // IE9 and non-IE
+        sel = shadowRoot.getSelection();
+        if (sel.getRangeAt && sel.rangeCount) {
+            range = sel.getRangeAt(0);
+            range.deleteContents();
+            var el = document.createElement('div');
+            el.innerHTML = html;
+            var frag = document.createDocumentFragment(), node, lastNode;
+            while ((node = el.firstChild)) {
+                node.onclick = function () {
+                    action();
+                };
+                lastNode = frag.appendChild(node);
+            }
+            var firstNode = frag.firstChild;
+            range.insertNode(frag);
+            // Preserve the selection
+            if (lastNode) {
+                range = range.cloneRange();
+                range.setStartAfter(lastNode);
+                if (selectPastedContent) {
+                    range.setStartBefore(firstNode);
+                }
+                else {
+                    range.collapse(true);
+                }
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+        }
+    }
+}
 
 /**
  * BUG: https://stackoverflow.com/questions/49167241/cursor-moves-to-end-of-the-contenteditable-div-when-character-removed-from-div/49167718
@@ -129,6 +165,7 @@ class SachMention {
          * @default true
          */
         this.ignoreCase = true;
+        this.delimiter = '@';
         this.onkeyDownListItem = (event, slot) => {
             if (event.key === 'ArrowDown') {
                 this.focusListItem(false);
@@ -149,7 +186,7 @@ class SachMention {
                 this.focusedListItemIndex = -1;
                 this.focusListItem(false);
             }
-            else if (event.key === '@') {
+            else if (event.key === this.delimiter) {
                 this.hideList = false;
             }
         };
@@ -173,12 +210,12 @@ class SachMention {
             const getIndexForCharacter = this.inputValue
                 ? input.innerText
                     .substring(0, this.findFirstDiffPos(input.innerText, this.inputValue))
-                    .lastIndexOf('@')
+                    .lastIndexOf(this.delimiter)
                 : -1;
             this.inputValue = input.innerText;
             this.cursorPosition = getIndexForCharacter;
-            let searchTerm = input.innerText.substring(getIndexForCharacter + 1, input.innerText.indexOf('@', getIndexForCharacter + 1) > -1
-                ? input.innerText.indexOf('@', getIndexForCharacter + 1)
+            let searchTerm = input.innerText.substring(getIndexForCharacter + 1, input.innerText.indexOf(this.delimiter, getIndexForCharacter + 1) > -1
+                ? input.innerText.indexOf(this.delimiter, getIndexForCharacter + 1)
                 : input.innerText.length);
             if (searchTerm.includes(' ')) {
                 searchTerm = searchTerm.split(' ')[0];
@@ -198,9 +235,6 @@ class SachMention {
         this.renderInput = () => {
             return (h("div", { contenteditable: "true", style: this.divStyle }, "\u00A0"));
         };
-    }
-    debounceChanged() {
-        this.onChange = debounceEvent(this.onChange, this.debounce);
     }
     focusListItem(focusPreviousListItem) {
         const listItemsCount = this.element.shadowRoot.querySelectorAll('li').length;
@@ -244,39 +278,6 @@ class SachMention {
             }
         }
     }
-    pasteHtmlAtCaret(html, selectPastedContent) {
-        let sel;
-        let range;
-        if (this.element.shadowRoot.getSelection) {
-            // IE9 and non-IE
-            sel = this.element.shadowRoot.getSelection();
-            if (sel.getRangeAt && sel.rangeCount) {
-                range = sel.getRangeAt(0);
-                range.deleteContents();
-                var el = document.createElement('div');
-                el.innerHTML = html;
-                var frag = document.createDocumentFragment(), node, lastNode;
-                while ((node = el.firstChild)) {
-                    lastNode = frag.appendChild(node);
-                }
-                var firstNode = frag.firstChild;
-                range.insertNode(frag);
-                // Preserve the selection
-                if (lastNode) {
-                    range = range.cloneRange();
-                    range.setStartAfter(lastNode);
-                    if (selectPastedContent) {
-                        range.setStartBefore(firstNode);
-                    }
-                    else {
-                        range.collapse(true);
-                    }
-                    sel.removeAllRanges();
-                    sel.addRange(range);
-                }
-            }
-        }
-    }
     placeCaretAtEnd(el) {
         el.focus();
         if (typeof window.getSelection != 'undefined' &&
@@ -291,7 +292,7 @@ class SachMention {
     }
     addValueToInput(slot) {
         const textbox = this.element.shadowRoot.getElementById('mention-textbox');
-        if (textbox.innerHTML.indexOf('@') < 0) {
+        if (textbox.innerHTML.indexOf(this.delimiter) < 0) {
             return;
         }
         let wordToDelete = textbox.innerText.substring(this.cursorPosition, textbox.innerText.length);
@@ -302,11 +303,18 @@ class SachMention {
             html = `&nbsp;${this.itemTemplate(slot.key, slot.value)}`;
         }
         else {
-            html = `&nbsp;@<span id=${slot.key} class="mention" contenteditable="false">${slot.value}</span>`;
+            html = `&nbsp;${this.delimiter}<span id=${slot.key} class="mention" contenteditable="false">${slot.value}</span>`;
+        }
+        let action = null;
+        if (this.itemClick == null) {
+            action = () => { alert(`Id of ${slot.value} is ${slot.key}`); };
+        }
+        else {
+            action = this.itemClick;
         }
         textbox.focus();
         SetCaretPosition(this.element.shadowRoot.getElementById('mention-textbox'), this.cursorPosition);
-        this.pasteHtmlAtCaret(html, false);
+        pasteHtmlAtCaret(this.element.shadowRoot, html, false, action);
         this.hideList = true;
     }
     onPaste(event) {
@@ -317,7 +325,6 @@ class SachMention {
         document.execCommand('insertHTML', false, text);
     }
     componentDidLoad() {
-        this.debounceChanged();
     }
     render() {
         return [
@@ -333,8 +340,11 @@ class SachMention {
         },
         "debounce": {
             "type": Number,
-            "attr": "debounce",
-            "watchCallbacks": ["debounceChanged"]
+            "attr": "debounce"
+        },
+        "delimiter": {
+            "type": String,
+            "attr": "delimiter"
         },
         "dictionary": {
             "type": "Any",
@@ -352,6 +362,10 @@ class SachMention {
         },
         "inputValue": {
             "state": true
+        },
+        "itemClick": {
+            "type": "Any",
+            "attr": "item-click"
         },
         "itemTemplate": {
             "type": "Any",

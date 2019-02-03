@@ -76,3 +76,43 @@ export function SetCaretPosition(el, pos){
     }
     return pos; // needed because of recursion stuff
 }
+
+export function pasteHtmlAtCaret(shadowRoot: ShadowRoot, html: string, selectPastedContent: string, action: Function) {
+    let sel: Selection;
+    let range: Range;
+    if (shadowRoot.getSelection) {
+      // IE9 and non-IE
+      sel = shadowRoot.getSelection();
+      if (sel.getRangeAt && sel.rangeCount) {
+        range = sel.getRangeAt(0);
+        range.deleteContents();
+
+        var el = document.createElement('div');
+        el.innerHTML = html;
+        var frag = document.createDocumentFragment(),
+          node,
+          lastNode;
+        while ((node = el.firstChild)) {
+            node.onclick = function() {
+                action();
+            };
+          lastNode = frag.appendChild(node);
+        }
+        var firstNode = frag.firstChild;
+        range.insertNode(frag);
+
+        // Preserve the selection
+        if (lastNode) {
+          range = range.cloneRange();
+          range.setStartAfter(lastNode);
+          if (selectPastedContent) {
+            range.setStartBefore(firstNode);
+          } else {
+            range.collapse(true);
+          }
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      }
+    }
+  }

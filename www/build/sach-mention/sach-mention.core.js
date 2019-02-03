@@ -1015,7 +1015,7 @@ const defineMember = (plt, property, elm, instance, memberName, hostSnapshot, pe
     // read any "own" property instance values already set
     // to our internal value as the source of getter data
     // we're about to define a property and it'll overwrite this "own" property
-    values[memberName] = instance[memberName]), property.watchCallbacks && (values[WATCH_CB_PREFIX + memberName] = property.watchCallbacks.slice()), 
+    values[memberName] = instance[memberName]), 
     // add getter/setter to the component instance
     // these will be pointed to the internal data set from the above checks
     definePropertyGetterSetter(instance, memberName, function getComponentProp(values) {
@@ -1039,29 +1039,16 @@ const setValue = (plt, elm, memberName, newVal, perf, instance, values) => {
   values = plt.valuesMap.get(elm), values || plt.valuesMap.set(elm, values = {});
   const oldVal = values[memberName];
   // check our new property value against our internal value
-    if (newVal !== oldVal && (
+    newVal !== oldVal && (
   // gadzooks! the property's value has changed!!
   // set our new value!
   // https://youtu.be/dFtLONl4cNc?t=22
-  values[memberName] = newVal, instance = plt.instanceMap.get(elm), instance)) {
-    {
-      const watchMethods = values[WATCH_CB_PREFIX + memberName];
-      if (watchMethods) 
-      // this instance is watching for when this property changed
-      for (let i = 0; i < watchMethods.length; i++) try {
-        // fire off each of the watch methods that are watching this property
-        instance[watchMethods[i]].call(instance, newVal, oldVal, memberName);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    !plt.activeRender && elm['s-rn'] && 
-    // looks like this value actually changed, so we've got work to do!
-    // but only if we've already rendered, otherwise just chill out
-    // queue that we need to do an update, but don't worry about queuing
-    // up millions cuz this function ensures it only runs once
-    queueUpdate(plt, elm, perf);
-  }
+  values[memberName] = newVal, instance = plt.instanceMap.get(elm), instance && !plt.activeRender && elm['s-rn'] && 
+  // looks like this value actually changed, so we've got work to do!
+  // but only if we've already rendered, otherwise just chill out
+  // queue that we need to do an update, but don't worry about queuing
+  // up millions cuz this function ensures it only runs once
+  queueUpdate(plt, elm, perf));
 };
 
 const definePropertyValue = (obj, propertyKey, value) => {
@@ -1080,8 +1067,6 @@ const definePropertyGetterSetter = (obj, propertyKey, get, set) => {
     set
   });
 };
-
-const WATCH_CB_PREFIX = 'wc-';
 
 const initComponentInstance = (plt, elm, hostSnapshot, perf, instance, componentConstructor, queuedEvents, i) => {
   try {
@@ -1641,4 +1626,4 @@ const initHostElement = (plt, cmpMeta, HostElementConstructor, hydratedCssClass,
   // but note that the components have not fully loaded yet
   App.initialized = true;
 })(n, x, w, d, r, h, c);
-})(window,document,{},"SachMention","hydrated",[["sach-mention","sach-mention",1,[["cursorPosition",16],["debounce",1,0,1,8],["dictionary",1],["element",64],["hideList",16],["ignoreCase",1,0,"ignore-case",4],["inputValue",16],["itemTemplate",1],["menuTemplate",1],["searchTermLength",1,0,"search-term-length",8],["valuesToShow",16]],1]]);
+})(window,document,{},"SachMention","hydrated",[["sach-mention","sach-mention",1,[["cursorPosition",16],["debounce",1,0,1,8],["delimiter",1,0,1,2],["dictionary",1],["element",64],["hideList",16],["ignoreCase",1,0,"ignore-case",4],["inputValue",16],["itemClick",1,0,"item-click",1],["itemTemplate",1],["menuTemplate",1],["searchTermLength",1,0,"search-term-length",8],["valuesToShow",16]],1]]);

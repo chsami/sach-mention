@@ -3,14 +3,13 @@ import {
   Prop,
   EventEmitter,
   Event,
-  Watch,
   State,
   Element
 } from '@stencil/core';
 import {
-  debounceEvent,
   searchInHtmlList,
-  SetCaretPosition
+  SetCaretPosition,
+  pasteHtmlAtCaret
 } from '../../utils/utils';
 
 /**
@@ -86,6 +85,8 @@ export class SachMention {
 
   @Prop() itemTemplate: (key: any, value: any) => string = null;
 
+  @Prop() itemClick: any;
+
 
   /**
    * if true ignores casing when matching strings
@@ -103,11 +104,6 @@ export class SachMention {
    * Emitted when a keyboard input ocurred.
    */
   @Event() inputEvent!: EventEmitter<KeyboardEvent>;
-
-  @Watch('debounce')
-  protected debounceChanged(): void {
-    this.onChange = debounceEvent(this.onChange, this.debounce);
-  }
 
   private focusListItem(focusPreviousListItem: boolean): void {
     const listItemsCount: number = this.element.shadowRoot.querySelectorAll(
@@ -161,42 +157,7 @@ export class SachMention {
     }
   }
 
-  pasteHtmlAtCaret(html, selectPastedContent) {
-    let sel: Selection;
-    let range: Range;
-    if (this.element.shadowRoot.getSelection) {
-      // IE9 and non-IE
-      sel = this.element.shadowRoot.getSelection();
-      if (sel.getRangeAt && sel.rangeCount) {
-        range = sel.getRangeAt(0);
-        range.deleteContents();
-
-        var el = document.createElement('div');
-        el.innerHTML = html;
-        var frag = document.createDocumentFragment(),
-          node,
-          lastNode;
-        while ((node = el.firstChild)) {
-          lastNode = frag.appendChild(node);
-        }
-        var firstNode = frag.firstChild;
-        range.insertNode(frag);
-
-        // Preserve the selection
-        if (lastNode) {
-          range = range.cloneRange();
-          range.setStartAfter(lastNode);
-          if (selectPastedContent) {
-            range.setStartBefore(firstNode);
-          } else {
-            range.collapse(true);
-          }
-          sel.removeAllRanges();
-          sel.addRange(range);
-        }
-      }
-    }
-  }
+ 
 
   private onkeyDownListItem = (
     event: KeyboardEvent,
@@ -313,18 +274,25 @@ export class SachMention {
     if (this.itemTemplate) {
       html = `&nbsp;${this.itemTemplate(slot.key, slot.value)}`;
     } else {
-      html = `&nbsp;@<span id=${
+      html = `&nbsp;${this.delimiter}<span id=${
         slot.key
       } class="mention" contenteditable="false">${slot.value}</span>`;
     }
 
+    let action: Function = null;
+    
+    if (this.itemClick == null) {
+      action = () => {alert(`Id of ${slot.value} is ${slot.key}`)};
+    } else {
+      action = this.itemClick;
+    }
     
     textbox.focus();
     SetCaretPosition(
       this.element.shadowRoot.getElementById('mention-textbox'),
       this.cursorPosition
     );
-    this.pasteHtmlAtCaret(html, false);
+    pasteHtmlAtCaret(this.element.shadowRoot, html, false, action);
     this.hideList = true;
   }
 
@@ -339,7 +307,6 @@ export class SachMention {
   }
 
   componentDidLoad(): void {
-    this.debounceChanged();
   }
 
   renderListMenu = () => {
