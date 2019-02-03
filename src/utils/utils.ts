@@ -77,7 +77,7 @@ export function SetCaretPosition(el, pos){
     return pos; // needed because of recursion stuff
 }
 
-export function pasteHtmlAtCaret(shadowRoot: ShadowRoot, html: string, selectPastedContent: string, action: Function) {
+export function pasteHtmlAtCaret(shadowRoot: ShadowRoot, html: string, selectPastedContent: boolean, action: Function) {
     let sel: Selection;
     let range: Range;
     if (shadowRoot.getSelection) {
